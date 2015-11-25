@@ -76,6 +76,7 @@ fi
 
 # Available bitrates: 320 850 1400 2400
 BITRATE=""
+AUTOPICK=0
 function set_bitrate {
 	case $1 in
 	l)	BITRATE=420	;;
@@ -188,9 +189,17 @@ function pick_tcUrl {
 	done
 	
 	stream=0
+	
 	if [ "$#" -eq 1 ]; then
 		stream=1
 	fi
+	
+	if [ "$AUTOPICK" -eq "1" ]; then
+	    let lastStream=$n-1
+	    stream=$lastStream
+	    echo "Automatically chose last stream of ${stream} possible."
+	fi
+
 	while [ -z ${Streams[$stream]} ]; do
 		echo -ne "\nWhich file do you want? [#] "
 		read stream
@@ -221,6 +230,7 @@ function askOverwrite {
 function print_help {
 	echo -e "Usage: $0 -q [l|m|n|h|320|420|620|850|900|1400|1600|2400|2760] -s $svtplay_url/..."
 	echo -e " -q\tquality of the stream"
+	echo -e " -a\tAutopick last stream in list of available streams. Can be combined with -q option."
 	echo -e " -p\tplay output"
 	echo -e " -s\tfetch subtitles"
 	echo -e " -f\tffmpeg flags"
@@ -249,10 +259,13 @@ function set_mediaplayer {
 }
 
 
-while getopts "q:f:psdh" opt; do
+while getopts "q:af:psdh" opt; do
 	case $opt in
 	q)
 		set_bitrate $OPTARG
+		;;
+	a)
+		AUTOPICK=1
 		;;
 	f)
 		ffmpeg_flags=$OPTARG
